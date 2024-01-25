@@ -1,7 +1,11 @@
 import React, { useState } from "react";
 import './styles.css';
 
-const operators = /[\+\-\÷x%]/
+const operators = /[\+\÷x%]/
+
+const log = (...args) => {
+    console.log(...args)
+}
 
 export default function Calculator() {
     const [value, setValue] = useState(" ")
@@ -45,9 +49,6 @@ export default function Calculator() {
     }
 
     const doOperation = (currentValue, operator, nextValue) => {
-        console.log(currentValue)
-        console.log(operator)
-        console.log(nextValue)
         switch(operator) {
             case "÷":
                 return currentValue / nextValue
@@ -57,19 +58,25 @@ export default function Calculator() {
                 return currentValue + nextValue
             case "-":
                 return currentValue - nextValue
+            case "%":
+                return currentValue * (nextValue / 100)
         }
     }   
+
+    const doNegativeOperation = (val1, val2) => {
+        return (-val1, val2)
+    }
 
     const finishCalculation = () => {
         let result = 0
         let valAlreadyCalculated = finalValue ? Number(finalValue) : 0
         const segmentos = value.match(/(?:\d+\.{2,}\d+|\d+\.\d+|\d+|[+\-\÷x%])/g);   //separa por segmentos tanto operadores como numeros y numeros decimales
-       
+        
         if(operators.test(value[value.length - 1]) || wronDecimals(segmentos) > 0) {    //verifica que la cuenta no comience con un operador y que haya decimales correctos
             result = "Error"
         } else {
             for (let i = 0; i < segmentos.length; i += 2) {
-                if(segmentos.length == 1) {              //si se escribe un solo valor se muestra como el resultado
+                if(segmentos.length == 1) {              //si se ingresa un solo valor y se da en "igual" se mostrara ese mismo
                     result = segmentos[i]                  
                 } 
                 else if(Number(finalValue) > 0) {                  //si resultado es mas grande que 0, es decir que ya habia una cuenta realizada
@@ -79,28 +86,33 @@ export default function Calculator() {
                         valAlreadyCalculated = doOperation(Number(valAlreadyCalculated), segmentos[i], Number(segmentos[i + 1]))
                         result = valAlreadyCalculated
                     }
-                    console.log(result)
                 } else {
                     result = i === 0 ? Number(segmentos[i]) : doOperation(Number(result), segmentos[i - 1], Number(segmentos[i]));
                 }
               }
         }
         
-        if(finalValue && !operators.test(segmentos[0])) {
-            result = Number(result) + Number(finalValue)
-        } else if(finalValue && operators.test(segmentos[0])) {
+        //en caso de que haya una cuenta ya realizada(finalValue), si la nueva operacion ingresada comienza con operadora, modificara el result anterior
+        //ej: -10 x 2 se modificara el resultado que ya habia
+        if(finalValue > 0 && operators.test(segmentos[0]) && !operators.test(segmentos[segmentos.length - 1])) {
             result = valAlreadyCalculated
         }
-
-        setValue(" ")                   
-        setFinalValue(result.toString())
+        log(finalValue)
+        if(result === "Error") {
+            setValue(result)
+            setFinalValue(" ")
+        } else {
+            setValue(" ")  
+            setFinalValue(result.toString())
+        }
+ 
         handleResultSize(result.toString())
     }
 
     const handleValue = (e) => {
         const numExpression = /number/
         const operExpression = /operator/
-        const isOperator = operExpression.test(e.target.className) ?? e.target.value
+        const isOperator = operators.test(e.target.value)
         const isNumber = numExpression.test(e.target.className) ?? e.target.value  
 
         if(value == " " && isOperator && finalValue == " ") return       //para que la cuenta no comienze con un operador 
@@ -148,6 +160,3 @@ export default function Calculator() {
 
 /* COSAS A REVISAR */
 /* -- Trabajar con numeros negativos */
-/* -- Trabajar con porcentaje */
-/* -- Ver cuando la cuenta comienza con operador y con finalValue esta vacio*/
-/* -- Ver cuando la cuenta termina con operador y con finalValue esta vacio */

@@ -6,7 +6,17 @@ body {
     background-color: #acaaaa;
 }
 
-
+@media (max-width: 412px) {
+    #calculator {
+        margin: 125px auto;
+        width: 208px;
+        height: 29.5em;
+    }
+    .key {
+        width: 60px;
+        height: 60px;
+    }
+}
 
 /* yellow: #ff9f0a
 gray: #333333
