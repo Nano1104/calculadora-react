@@ -1,11 +1,7 @@
 import React, { useState } from "react";
 import './styles.css';
 
-const operators = /[\+\÷x%]/
-
-const log = (...args) => {
-    console.log(...args)
-}
+const operators = /[\+\-\÷x%]/
 
 export default function Calculator() {
     const [value, setValue] = useState(" ")
@@ -37,7 +33,7 @@ export default function Calculator() {
         }
     }
 
-    const wronDecimals = (segmentos) => {   //se encarga de verificar que los decimales sean correctos
+    const wrongDecimals = (segmentos) => {   //se encarga de verificar que los decimales sean correctos
         const expression = /\..*\./;        //expresion para verificar si hay mas de una coma en un decimal
         let decimals = 0
         segmentos.forEach(segm => {
@@ -63,42 +59,28 @@ export default function Calculator() {
         }
     }   
 
-    const doNegativeOperation = (val1, val2) => {
-        return (-val1, val2)
-    }
-
     const finishCalculation = () => {
-        let result = 0
-        let valAlreadyCalculated = finalValue ? Number(finalValue) : 0
+        let result = finalValue ? Number(finalValue) : 0        //si ya habia un valor realizado(finalValue) se asignara ese, sino 0
         const segmentos = value.match(/(?:\d+\.{2,}\d+|\d+\.\d+|\d+|[+\-\÷x%])/g);   //separa por segmentos tanto operadores como numeros y numeros decimales
-        
-        if(operators.test(value[value.length - 1]) || wronDecimals(segmentos) > 0) {    //verifica que la cuenta no comience con un operador y que haya decimales correctos
+
+        if(operators.test(value[value.length - 1]) || wrongDecimals(segmentos) > 0) {    //verifica que la cuenta no termine con un operador y que haya decimales correctos
             result = "Error"
         } else {
             for (let i = 0; i < segmentos.length; i += 2) {
                 if(segmentos.length == 1) {              //si se ingresa un solo valor y se da en "igual" se mostrara ese mismo
                     result = segmentos[i]                  
-                } 
-                else if(Number(finalValue) > 0) {                  //si resultado es mas grande que 0, es decir que ya habia una cuenta realizada
-                    if(!operators.test(segmentos[0])) {
+                }
+                else {           
+                    if(!operators.test(segmentos[0])) {           //si la operacion ingresada no comienza con operador
                         result = i === 0 ? Number(segmentos[i]) : doOperation(Number(result), segmentos[i - 1], Number(segmentos[i]));
                     } else {
-                        valAlreadyCalculated = doOperation(Number(valAlreadyCalculated), segmentos[i], Number(segmentos[i + 1]))
-                        result = valAlreadyCalculated
+                        result = doOperation(Number(result), segmentos[i], Number(segmentos[i + 1]))
                     }
-                } else {
-                    result = i === 0 ? Number(segmentos[i]) : doOperation(Number(result), segmentos[i - 1], Number(segmentos[i]));
                 }
               }
         }
         
-        //en caso de que haya una cuenta ya realizada(finalValue), si la nueva operacion ingresada comienza con operadora, modificara el result anterior
-        //ej: -10 x 2 se modificara el resultado que ya habia
-        if(finalValue > 0 && operators.test(segmentos[0]) && !operators.test(segmentos[segmentos.length - 1])) {
-            result = valAlreadyCalculated
-        }
-        log(finalValue)
-        if(result === "Error") {
+        if(result === "Error") {        //en que caso de que haya un error en el value
             setValue(result)
             setFinalValue(" ")
         } else {
@@ -111,14 +93,10 @@ export default function Calculator() {
 
     const handleValue = (e) => {
         const numExpression = /number/
-        const operExpression = /operator/
-        const isOperator = operators.test(e.target.value)
         const isNumber = numExpression.test(e.target.className) ?? e.target.value  
-
-        if(value == " " && isOperator && finalValue == " ") return       //para que la cuenta no comienze con un operador 
-                                                                         //si es que no se realizo una cuenta antes
+                                                                         
         if(value.length < 17 && value !== "Error") {                    //maximo de la screen y que no haya error 
-            if(!operators.test(value[value.length - 1])) {      //condicion para que no se repitan operadores seguidos
+            if(!/[\+\-\÷x%]/.test(value[value.length - 1])) {      //condicion para que no se repitan operadores seguidos
                 setValue(value + e.target.value)
             } else if(isNumber || value == ".") {                           
                 setValue(value + e.target.value)
@@ -157,6 +135,3 @@ export default function Calculator() {
         </>
     )
 }
-
-/* COSAS A REVISAR */
-/* -- Trabajar con numeros negativos */
